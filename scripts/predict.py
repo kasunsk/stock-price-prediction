@@ -1,19 +1,18 @@
 # File: predict.py
 
-import pandas as pd
 import numpy as np
 import joblib
 
-# Load the trained model
-model = joblib.load("models/linear_regression.pkl")
-print("Model loaded successfully.")
-
-# Predict the next day price
-def predict_next_day(current_price):
+def predict_next_month(ticker, current_price):
+    """Load the trained model for a stock and predict the next month's price."""
+    model_path = f"models/{ticker}_linear_regression.pkl"
+    model = joblib.load(model_path)
+    print(f"Model for {ticker} loaded successfully.")
     prediction = model.predict(np.array([[current_price]]))
     return prediction[0]
 
-# Example usage
-current_price = 100  # Replace with the latest closing price
-predicted_price = predict_next_day(current_price)
-print(f"Predicted Price for the Next Day: {predicted_price}")
+# Example usage:
+# ticker = "META"
+# current_price = 300
+# predicted_price = predict_next_month(ticker, current_price)
+# print(f"Predicted Price for {ticker} in the next month: {predicted_price}")
