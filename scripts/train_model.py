@@ -6,24 +6,18 @@ from sklearn.metrics import mean_squared_error
 import joblib
 import yfinance as yf
 
-def fetch_stock_data(tickers, start_date, end_date):
-    """Fetch stock data from Yahoo Finance for given tickers."""
-    all_data = {}
-    for ticker in tickers:
-        print(f"Fetching data for {ticker}...")
-        stock_data = yf.download(ticker, start=start_date, end=end_date)
-        all_data[ticker] = stock_data
-        # stock_data.to_csv(f"data/{ticker}.csv")
-    return all_data
+def fetch_stock_data(ticker, start_date, end_date):
+    """Fetch stock data from Yahoo Finance for a given ticker."""
+    print(f"Fetching data for {ticker}...")
+    stock_data = yf.download(ticker, start=start_date, end=end_date)
+    return stock_data
 
-def preprocess_data(stock_data):
+def preprocess_data(data):
     """Preprocess stock data for training and testing."""
-    processed_data = {}
-    for ticker, data in stock_data.items():
-        data['Future Price'] = data['Close'].shift(-30)
-        data.dropna(inplace=True)
-        processed_data[ticker] = data
-    return processed_data
+    data['Future Price'] = data['Close'].shift(-30)
+    data.dropna(inplace=True)
+    return data
+
 def train_model(ticker, data):
     """Train and save a Linear Regression model for a specific stock ticker."""
     X = data[['Close']]
