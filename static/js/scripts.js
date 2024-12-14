@@ -58,6 +58,14 @@ function showPredictionGraphOld(dates, prices, ticker) {
     popup.document.close();
 }
 
+document.getElementById('ticker_select').addEventListener('change', function () {
+    const messageBox = document.getElementById('message-box');
+    if (messageBox) {
+        messageBox.innerHTML = ''; // Clear the message box content
+    }
+});
+
+
 function showPredictionGraphOld2(dates, prices, ticker) {
     const popup = window.open('', '_blank', 'width=800,height=600');
 
@@ -115,6 +123,9 @@ function showPredictionGraphOld2(dates, prices, ticker) {
 function showPredictionGraph(dates, prices, ticker) {
     const popup = window.open('', '_blank', 'width=800,height=600');
 
+    // Extract only the day from the dates array
+    const dayLabels = dates.map(date => new Date(date).getDate());
+
     // Write the basic HTML structure with Chart.js
     popup.document.write(`
         <!DOCTYPE html>
@@ -132,7 +143,7 @@ function showPredictionGraph(dates, prices, ticker) {
                     new Chart(ctx, {
                         type: 'line',
                         data: {
-                            labels: ${JSON.stringify(dates)},
+                            labels: ${JSON.stringify(dayLabels)}, // Use only the day numbers
                             datasets: [{
                                 label: 'Predicted Prices',
                                 data: ${JSON.stringify(prices)},
@@ -147,7 +158,7 @@ function showPredictionGraph(dates, prices, ticker) {
                                 x: {
                                     title: {
                                         display: true,
-                                        text: 'Date'
+                                        text: 'Day of Month'
                                     }
                                 },
                                 y: {
@@ -167,6 +178,89 @@ function showPredictionGraph(dates, prices, ticker) {
 
     popup.document.close();
 }
+
+async function predictNext6Months() {
+    const ticker = document.getElementById('ticker_select').value;
+    const currentPrice = document.getElementById('current_price').value;
+
+    if (!ticker || !currentPrice) {
+        alert('Please select a ticker and enter the current price.');
+        return;
+    }
+
+    try {
+        const response = await fetch('/predict_6_months', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ticker, current_price: currentPrice })
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+            showWeeklyPredictionGraph(data.weeks, data.prices, ticker);
+        } else {
+            alert('Error: Could not fetch predictions.');
+        }
+    } catch (error) {
+        alert('Error fetching predictions. Please try again.');
+    }
+}
+
+function showWeeklyPredictionGraph(weeks, prices, ticker) {
+    const popup = window.open('', '_blank', 'width=800,height=600');
+
+    popup.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>6-Month Predictions for ${ticker}</title>
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        </head>
+        <body>
+            <h2>6-Month Predictions (Weekly Average) for ${ticker}</h2>
+            <canvas id="weeklyPredictionChart" width="800" height="400"></canvas>
+            <script>
+                window.onload = function () {
+                    const ctx = document.getElementById('weeklyPredictionChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: ${JSON.stringify(weeks)},
+                            datasets: [{
+                                label: 'Average Weekly Price',
+                                data: ${JSON.stringify(prices)},
+                                backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                borderWidth: 1,
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                x: {
+                                    title: {
+                                        display: true,
+                                        text: 'Weeks'
+                                    }
+                                },
+                                y: {
+                                    title: {
+                                        display: true,
+                                        text: 'Average Price'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                };
+            </script>
+        </body>
+        </html>
+    `);
+
+    popup.document.close();
+}
+
 
 
 

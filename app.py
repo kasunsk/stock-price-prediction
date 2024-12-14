@@ -2,7 +2,7 @@
 
 from flask import Flask, request, render_template, jsonify
 from scripts.train_model import fetch_stock_data, preprocess_data, train_model
-from scripts.predict import predict_next_month, predict_next_30_days
+from scripts.predict import predict_next_month, predict_next_30_days, predict_next_6_months
 import os
 
 app = Flask(__name__)
@@ -57,6 +57,15 @@ def predict_30_days():
 
     # Predict the next 30 days' prices
     prediction_data = predict_next_30_days(ticker, current_price)
+    return jsonify(prediction_data)
+
+@app.route('/predict_6_months', methods=['POST'])
+def predict_6_months():
+    ticker = request.json.get('ticker')
+    current_price = float(request.json.get('current_price'))
+
+    # Predict the next 6 months' weekly average prices
+    prediction_data = predict_next_6_months(ticker, current_price)
     return jsonify(prediction_data)
 
 
