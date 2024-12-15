@@ -18,20 +18,28 @@ def predict_next_month(ticker, current_price):
 # predicted_price = predict_next_month(ticker, current_price)
 # print(f"Predicted Price for {ticker} in the next month: {predicted_price}")
 
-def predict_next_30_days(ticker, current_price):
+def predict_next_30_days(ticker, current_price, end_date):
     """Load the trained model for a stock and predict the next 30 days' prices."""
     model_path = f"models/{ticker}_linear_regression.pkl"
     model = joblib.load(model_path)
     print(f"Model for {ticker} loaded successfully.")
 
+    start_date = pd.Timestamp(end_date)
+    day_number = (start_date - pd.Timestamp('1970-01-01')).days  # Convert start_date to day number
     predictions = []
-    for day in range(30):
-        next_price = model.predict(np.array([[current_price]]))[0]
+    dates = []
+    for day in range(1, 31):
+        next_date = start_date + pd.Timedelta(days=day)
+        dates.append(next_date.strftime('%Y-%m-%d'))  # Add date to the list
+
+        # Predict stock price for the current date
+        next_price = model.predict(np.array([[current_price, day_number]]))[0]
         predictions.append(next_price)
-        current_price = next_price  # Update current_price for the next prediction
+
+        # Update the current price for the next prediction
+        current_price = next_price
 
     # Generate dates for the next 30 days
-    dates = pd.date_range(start=pd.Timestamp.today(), periods=30).strftime('%Y-%m-%d').tolist()
     return {'dates': dates, 'prices': predictions}
 
 def predict_next_6_months(ticker, current_price):

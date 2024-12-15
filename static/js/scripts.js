@@ -1,8 +1,9 @@
 async function predictNext30Days() {
     const ticker = document.getElementById('ticker_select').value;
     const currentPrice = document.getElementById('current_price').value;
+    const endDate = document.getElementById('end_date').value;
 
-    if (!ticker || !currentPrice) {
+    if (!ticker || !currentPrice ||  !endDate) {
         alert('Please select a ticker and enter the current price.');
         return;
     }
@@ -11,7 +12,7 @@ async function predictNext30Days() {
         const response = await fetch('/predict_30_days', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ticker, current_price: currentPrice })
+            body: JSON.stringify({ ticker, current_price: currentPrice , end_date: endDate })
         });
 
         const data = await response.json();
@@ -123,10 +124,6 @@ function showPredictionGraphOld2(dates, prices, ticker) {
 function showPredictionGraph(dates, prices, ticker) {
     const popup = window.open('', '_blank', 'width=800,height=600');
 
-    // Extract only the day from the dates array
-    const dayLabels = dates.map(date => new Date(date).getDate());
-
-    // Write the basic HTML structure with Chart.js
     popup.document.write(`
         <!DOCTYPE html>
         <html>
@@ -135,42 +132,37 @@ function showPredictionGraph(dates, prices, ticker) {
             <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         </head>
         <body>
-            <h2>30-Day Predictions for ${ticker}</h2>
+            <h2 style="text-align: center;">30-Day Predictions for ${ticker}</h2>
             <canvas id="predictionChart" width="800" height="400"></canvas>
+            <div style="text-align: center; margin-top: 20px;">
+                <button onclick="window.close()" style="padding: 10px 20px; background-color: red; color: white; border: none; border-radius: 5px; cursor: pointer;">Close</button>
+            </div>
             <script>
-                window.onload = function () {
-                    const ctx = document.getElementById('predictionChart').getContext('2d');
-                    new Chart(ctx, {
-                        type: 'line',
-                        data: {
-                            labels: ${JSON.stringify(dayLabels)}, // Use only the day numbers
-                            datasets: [{
-                                label: 'Predicted Prices',
-                                data: ${JSON.stringify(prices)},
-                                borderColor: 'rgba(75, 192, 192, 1)',
-                                borderWidth: 2,
-                                fill: false,
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            scales: {
-                                x: {
-                                    title: {
-                                        display: true,
-                                        text: 'Day of Month'
-                                    }
-                                },
-                                y: {
-                                    title: {
-                                        display: true,
-                                        text: 'Price'
-                                    }
-                                }
+                const ctx = document.getElementById('predictionChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ${JSON.stringify(dates)},
+                        datasets: [{
+                            label: 'Predicted Prices',
+                            data: ${JSON.stringify(prices)},
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 2,
+                            fill: false,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            x: {
+                                title: { display: true, text: 'Date' }
+                            },
+                            y: {
+                                title: { display: true, text: 'Price' }
                             }
                         }
-                    });
-                };
+                    }
+                });
             </script>
         </body>
         </html>
@@ -213,46 +205,41 @@ function showWeeklyPredictionGraph(weeks, prices, ticker) {
         <!DOCTYPE html>
         <html>
         <head>
-            <title>6-Month Predictions for ${ticker}</title>
+            <title>6-Month Weekly Predictions for ${ticker}</title>
             <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         </head>
         <body>
-            <h2>6-Month Predictions (Weekly Average) for ${ticker}</h2>
+            <h2 style="text-align: center;">6-Month Weekly Predictions for ${ticker}</h2>
             <canvas id="weeklyPredictionChart" width="800" height="400"></canvas>
+            <div style="text-align: center; margin-top: 20px;">
+                <button onclick="window.close()" style="padding: 10px 20px; background-color: red; color: white; border: none; border-radius: 5px; cursor: pointer;">Close</button>
+            </div>
             <script>
-                window.onload = function () {
-                    const ctx = document.getElementById('weeklyPredictionChart').getContext('2d');
-                    new Chart(ctx, {
-                        type: 'bar',
-                        data: {
-                            labels: ${JSON.stringify(weeks)},
-                            datasets: [{
-                                label: 'Average Weekly Price',
-                                data: ${JSON.stringify(prices)},
-                                backgroundColor: 'rgba(75, 192, 192, 0.5)',
-                                borderColor: 'rgba(75, 192, 192, 1)',
-                                borderWidth: 1,
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            scales: {
-                                x: {
-                                    title: {
-                                        display: true,
-                                        text: 'Weeks'
-                                    }
-                                },
-                                y: {
-                                    title: {
-                                        display: true,
-                                        text: 'Average Price'
-                                    }
-                                }
+                const ctx = document.getElementById('weeklyPredictionChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ${JSON.stringify(weeks)},
+                        datasets: [{
+                            label: 'Average Weekly Price',
+                            data: ${JSON.stringify(prices)},
+                            backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            x: {
+                                title: { display: true, text: 'Weeks' }
+                            },
+                            y: {
+                                title: { display: true, text: 'Average Price' }
                             }
                         }
-                    });
-                };
+                    }
+                });
             </script>
         </body>
         </html>

@@ -1,8 +1,9 @@
 # File: app.py
 
 from flask import Flask, request, render_template, jsonify
-from scripts.train_model import fetch_stock_data, preprocess_data, train_model
+from scripts.train_model import fetch_stock_data, preprocess_data, train_model, fetch_current_stock_price
 from scripts.predict import predict_next_month, predict_next_30_days, predict_next_6_months
+from datetime import timedelta, datetime
 import os
 
 app = Flask(__name__)
@@ -39,8 +40,12 @@ def get_current_price():
     ticker = request.json.get('ticker')
     end_date = request.json.get('end_date')
 
+    end_date_obj = datetime.strptime(end_date, '%Y-%m-%d')  # Co
+    start_date_obj = end_date_obj - timedelta(days=1)
+    start_date = start_date_obj.strftime('%Y-%m-%d')
+
     # Fetch stock data for the given date
-    stock_data = fetch_stock_data(ticker, end_date, end_date)
+    stock_data = fetch_current_stock_price(ticker, start_date, end_date)
 
     if stock_data.empty:
         return jsonify({'error': 'No data found for the selected date.'}), 400
@@ -54,9 +59,10 @@ def get_current_price():
 def predict_30_days():
     ticker = request.json.get('ticker')
     current_price = float(request.json.get('current_price'))
+    end_date = request.json.get('end_date')
 
     # Predict the next 30 days' prices
-    prediction_data = predict_next_30_days(ticker, current_price)
+    prediction_data = predict_next_30_days(ticker, current_price, end_date)
     return jsonify(prediction_data)
 
 @app.route('/predict_6_months', methods=['POST'])
